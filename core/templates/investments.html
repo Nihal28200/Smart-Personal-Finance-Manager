@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4" style="max-width: 950px;">
+    
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold">📈 Investments Portfolio</h2>
+            <p class="text-muted small">Track your assets & wealth growth in real-time.</p>
+        </div>
+        <div class="col-auto text-end">
+            <div class="card bg-success text-white px-4 py-3 shadow-sm border-0 rounded-4">
+                <small class="text-white-50 text-uppercase fw-bold" style="font-size: 0.7rem;">Total Portfolio Value</small>
+                <h3 class="mb-0 fw-bold">{{ user.userprofile.currency }} {{ total_invested|default:"0.00" }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-primary rounded-pill mb-4 px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#investModal">
+        <i class="fas fa-plus-circle me-2"></i> Add New Investment
+    </button>
+
+    <div class="row g-3">
+        {% for inv in investments %}
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100 rounded-4 hover-scale">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge bg-primary-subtle text-primary border-0 rounded-pill px-3 py-2 small">
+                            {{ inv.get_category_display }}
+                        </span>
+                        <div class="text-success small fw-bold">
+                            <i class="fas fa-chart-line me-1"></i>{{ inv.return_rate }}%
+                        </div>
+                    </div>
+                    <h5 class="fw-bold mb-1">{{ inv.name }}</h5>
+                    <p class="text-muted small mb-3"><i class="far fa-calendar-alt me-1"></i>{{ inv.invest_date }}</p>
+                    <div class="d-flex align-items-baseline">
+                        <h4 class="fw-bold text-primary mb-0">{{ user.userprofile.currency }} {{ inv.amount }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="text-muted opacity-25 mb-3">
+                <i class="fas fa-briefcase fa-4x"></i>
+            </div>
+            <h5 class="fw-bold text-muted">Your portfolio is empty!</h5>
+            <p class="text-muted small">Start adding your Stocks, Mutual Funds or Gold to track them here.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal fade" id="investModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="fw-bold">Add New Investment 💰</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3 text-start">
+                        <label class="form-label small fw-bold text-muted">Asset / Company Name</label>
+                        {{ form.name }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6 mb-3 text-start">
+                            <label class="form-label small fw-bold text-muted">Amount Invested</label>
+                            {{ form.amount }}
+                        </div>
+                        <div class="col-6 mb-3 text-start">
+                            <label class="form-label small fw-bold text-muted">Asset Class</label>
+                            {{ form.category }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3 text-start">
+                            <label class="form-label small fw-bold text-muted">Invested Date</label>
+                            {{ form.invest_date }}
+                        </div>
+                        <div class="col-6 mb-3 text-start">
+                            <label class="form-label small fw-bold text-muted">Exp. Annual Return %</label>
+                            {{ form.return_rate }}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-3 mt-3 shadow">
+                        Add to My Portfolio
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ✨ PRO STYLING */
+    .hover-scale {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hover-scale:hover { 
+        transform: translateY(-8px); 
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important; 
+    }
+    
+    /* Input & Select Customization */
+    input, select { 
+        width: 100%; 
+        padding: 12px 16px; 
+        border: 1px solid var(--border-color); 
+        border-radius: 12px; 
+        background: var(--bg-body);
+        color: var(--text-dark);
+        font-size: 0.9rem;
+    }
+    input:focus, select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Professional Badges */
+    .bg-primary-subtle {
+        background-color: rgba(99, 102, 241, 0.1) !important;
+    }
+</style>
+{% endblock %}

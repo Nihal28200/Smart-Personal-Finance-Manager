@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden position-relative">
+            
+            <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-robot fa-3x mb-3 animate-bounce"></i>
+                <h3 class="fw-bold">AI Receipt Scanner</h3>
+                <p class="mb-0 opacity-75">Drop your receipt here and let Gemini analyze it.</p>
+            </div>
+
+            <div class="card-body p-4">
+                <form method="post" enctype="multipart/form-data" id="uploadForm">
+                    {% csrf_token %}
+                    
+                    <div class="upload-area p-5 text-center border-2 border-dashed rounded-4 mb-4 position-relative" 
+                         id="dropZone"
+                         style="border-color: #cbd5e0; background-color: #f8fafc; cursor: pointer; transition: all 0.3s;">
+                        
+                        <div id="uploadPlaceholder">
+                            <div class="mb-3">
+                                <i class="fas fa-cloud-upload-alt fa-4x text-primary opacity-50"></i>
+                            </div>
+                            <h5 class="fw-bold text-dark">Drag & Drop or Click to Upload</h5>
+                            <p class="text-muted small">Supports JPG, PNG, JPEG</p>
+                        </div>
+
+                        <div id="imagePreviewContainer" class="d-none position-relative">
+                            <img id="imagePreview" src="" class="img-fluid rounded shadow-sm" style="max-height: 300px; width: auto;">
+                            <button type="button" id="removeImage" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <input type="file" name="receipt_image" id="fileInput" class="d-none" accept="image/*" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm" id="scanBtn">
+                        <i class="fas fa-magic me-2"></i> Analyze with AI
+                    </button>
+                </form>
+            </div>
+
+            <div id="scanOverlay" class="position-absolute top-0 start-0 w-100 h-100 bg-white d-none flex-column align-items-center justify-content-center" style="z-index: 10;">
+                <div class="position-relative w-75 h-50 border rounded overflow-hidden shadow-lg">
+                    <img id="scanningImage" src="" class="w-100 h-100 object-fit-contain" style="opacity: 0.6;">
+                    
+                    <div class="laser-line"></div>
+                </div>
+
+                <h4 class="mt-4 fw-bold text-primary typewriter">Analyzing Receipt...</h4>
+                <div class="d-flex gap-2 mt-2">
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success">OCR Extracting</span>
+                    <span class="badge bg-info bg-opacity-10 text-info border border-info">Categorizing</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .upload-area:hover {
+        background-color: #edf2f7 !important;
+        border-color: #764ba2 !important;
+    }
+    
+    .animate-bounce {
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+        40% {transform: translateY(-10px);}
+        60% {transform: translateY(-5px);}
+    }
+
+    /* Laser Scanning Animation */
+    .laser-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: #00ff00;
+        box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+        animation: scan 2s infinite linear;
+    }
+
+    @keyframes scan {
+        0% { top: 0%; }
+        50% { top: 100%; }
+        100% { top: 0%; }
+    }
+</style>
+
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+    const removeBtn = document.getElementById('removeImage');
+    const uploadForm = document.getElementById('uploadForm');
+    const scanOverlay = document.getElementById('scanOverlay');
+    const scanningImage = document.getElementById('scanningImage');
+
+    // 1. Click to Upload
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // 2. Handle File Selection
+    fileInput.addEventListener('change', function() {
+        showPreview(this.files[0]);
+    });
+
+    // 3. Drag & Drop Support
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#764ba2';
+        dropZone.style.backgroundColor = '#e9d8fd';
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = '#cbd5e0';
+        dropZone.style.backgroundColor = '#f8fafc';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#cbd5e0';
+        dropZone.style.backgroundColor = '#f8fafc';
+        
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            showPreview(e.dataTransfer.files[0]);
+        }
+    });
+
+    // Function to Show Preview
+    function showPreview(file) {
+        if (file) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                scanningImage.src = e.target.result; // Set for scanning animation too
+                uploadPlaceholder.classList.add('d-none');
+                imagePreviewContainer.classList.remove('d-none');
+            }
+        }
+    }
+
+    // Remove Image
+    removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent opening file dialog
+        fileInput.value = '';
+        uploadPlaceholder.classList.remove('d-none');
+        imagePreviewContainer.classList.add('d-none');
+    });
+
+    // 4. Form Submit Animation
+    uploadForm.addEventListener('submit', function(e) {
+        if (!fileInput.value) {
+            e.preventDefault();
+            alert("Please select an image first!");
+            return;
+        }
+        
+        // Show Overlay
+        scanOverlay.classList.remove('d-none');
+        scanOverlay.classList.add('d-flex');
+        
+        // Button text change
+        const btn = document.getElementById('scanBtn');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
+        btn.disabled = true;
+    });
+</script>
+{% endblock %}

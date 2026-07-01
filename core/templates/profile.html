@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                <div style="height: 150px; background: linear-gradient(to right, #667eea, #764ba2);"></div>
+                
+                <div class="card-body text-center p-0" style="margin-top: -60px;">
+                    <div class="mx-auto bg-white p-1 rounded-circle shadow-sm" style="width: 130px; height: 130px;">
+                        {% if user.userprofile.profile_pic %}
+                            <img src="{{ user.userprofile.profile_pic.url }}" class="rounded-circle w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <div class="w-100 h-100 bg-light rounded-circle d-flex align-items-center justify-content-center">
+                                <span class="display-4 fw-bold text-primary">{{ user.username|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="fw-bold mt-3">{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p class="text-muted">@{{ user.username }}</p>
+
+                    <div class="row mt-4 mb-4 g-0 border-top border-bottom">
+                        <div class="col-4 border-end py-3">
+                            <h5 class="fw-bold mb-0">{{ total_receipts }}</h5>
+                            <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Transactions</small>
+                        </div>
+                        <div class="col-4 border-end py-3">
+                            <h5 class="fw-bold mb-0 text-success">{{ currency_symbol }}{{ request.user.userprofile.monthly_budget }}</h5>
+                            <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Budget</small>
+                        </div>
+                        <div class="col-4 py-3">
+                            <h5 class="fw-bold mb-0 text-primary">{{ user.date_joined|date:"M Y" }}</h5>
+                            <small class="text-muted text-uppercase" style="font-size: 0.7rem;">Joined</small>
+                        </div>
+                    </div>
+
+                    <div class="px-5 pb-5">
+                        <h6 class="text-start fw-bold mb-3 text-muted"><i class="fas fa-cog me-2"></i> Account Settings</h6>
+                        
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-3 text-start">
+                                <label class="small fw-bold text-muted">Change Profile Photo</label>
+                                <input type="file" name="profile_pic" class="form-control mt-1">
+                            </div>
+                            <div class="mb-3 text-start">
+                                <label class="small fw-bold text-muted">Phone Number</label>
+                                <input type="text" name="phone" class="form-control mt-1" value="{{ user.userprofile.phone }}">
+                            </div>
+                            <button class="btn btn-primary w-100 rounded-pill shadow-sm">Save Changes</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

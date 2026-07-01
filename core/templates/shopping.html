@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4" style="max-width: 650px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-shopping-basket me-2 text-primary"></i>Shopping List</h2>
+        <span class="badge bg-primary rounded-pill px-3">{{ items.count }} Items</span>
+    </div>
+
+    <div class="card border-0 shadow-sm p-3 mb-4 rounded-4" style="background: var(--bg-card);">
+        <form method="post" class="row g-2">
+            {% csrf_token %}
+            <div class="col-8">
+                <input type="text" name="item" class="form-control border-0 bg-light rounded-pill px-4" placeholder="Add something (e.g. Laptop bag)..." required>
+            </div>
+            <div class="col-4">
+                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Add Item</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="list-group list-group-flush">
+            {% for item in items %}
+            <div class="list-group-item d-flex justify-content-between align-items-center p-3 bg-transparent border-bottom">
+                <div class="d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input me-3" {% if item.is_bought %}checked{% endif %}>
+                    <span class="fw-bold {% if item.is_bought %}text-decoration-line-through text-muted{% endif %}">
+                        {{ item.item_name }}
+                    </span>
+                </div>
+                {% if item.priority == 'Urgent' %}
+                <span class="badge bg-danger-subtle text-danger border-0 rounded-pill small">Urgent</span>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="p-5 text-center text-muted">
+                <i class="fas fa-clipboard-list fa-3x mb-3 opacity-25"></i>
+                <p>Your shopping list is empty. Start adding items!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

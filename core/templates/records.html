@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">📑 All Records</h2>
+        <a href="{% url 'export_expenses_csv' %}" class="btn btn-outline-dark btn-sm">
+            <i class="fas fa-download me-2"></i>Download CSV
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">Date</th>
+                            <th>Category</th>
+                            <th>Note/Description</th>
+                            <th class="text-end pe-4">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                        <tr>
+                            <td class="ps-4 text-muted small">{{ expense.expense_date }}</td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">
+                                    {{ expense.category }}
+                                </span>
+                            </td>
+                            <td class="text-muted small">
+                                {% if expense.receipt_image %}
+                                <i class="fas fa-paperclip text-muted me-1"></i> Receipt Attached
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4 fw-bold">
+                                {{ user.userprofile.currency }} {{ expense.amount }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">No records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

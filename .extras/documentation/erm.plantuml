@@ -1,0 +1,24 @@
+@startuml erm
+entity UserProfile {
+  * id : LONG [PK]
+  * target_currency : VARCHAR(3)
+  * user_id : INT [FK]
+  --
+}
+
+entity Expense {
+  * id : LONG [PK]
+  * user_id : INT [FK]
+  * receipt_image : VARCHAR(100)
+  * category : VARCHAR(100)
+  * expense_date : DATE
+  * amount : DECIMAL(10,2)
+  * currency : VARCHAR(3)
+  * amount_in_target_currency : DECIMAL(10,2)
+  * created_at : TIMESTAMP
+  * updated_at : TIMESTAMP
+  --
+}
+
+UserProfile ||-left-o{ Expense : has
+@enduml

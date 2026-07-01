@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5" style="max-width: 800px;">
+    
+    <div class="text-center mb-5">
+        <div class="d-inline-block bg-white p-3 rounded-circle shadow-sm mb-3">
+            <i class="fas fa-exchange-alt fa-3x text-primary"></i>
+        </div>
+        <h2 class="fw-bold">Live Currency Rates 🌍</h2>
+        <p class="text-muted">Base Currency: <span class="badge bg-dark">1 USD ($)</span></p>
+        {% if last_updated %}
+            <small class="text-success fw-bold"><i class="fas fa-clock me-1"></i> Last Updated: {{ last_updated }}</small>
+        {% endif %}
+    </div>
+
+    <div class="row g-3">
+        {% for name, rate in rates.items %}
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm hover-scale h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-light rounded-circle p-2 me-3 text-secondary">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <h6 class="mb-0 fw-bold text-dark">{{ name }}</h6>
+                    </div>
+                    <span class="fs-5 fw-bold text-primary">{{ rate }}</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-danger">
+            <i class="fas fa-wifi fa-2x mb-2"></i>
+            <p>Unable to fetch rates. Please check your internet connection.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="card border-0 shadow-lg mt-5 rounded-4 overflow-hidden">
+        <div class="card-header bg-primary text-white p-3">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-calculator me-2"></i>Quick Converter</h5>
+        </div>
+        <div class="card-body p-4 bg-white">
+            <div class="row align-items-end">
+                <div class="col-md-5 mb-3">
+                    <label class="small fw-bold text-muted">Amount (USD)</label>
+                    <input type="number" id="usdAmount" class="form-control form-control-lg" placeholder="1" oninput="convert()" value="1">
+                </div>
+                <div class="col-md-2 mb-3 text-center">
+                    <i class="fas fa-arrow-right fa-2x text-muted mt-2"></i>
+                </div>
+                <div class="col-md-5 mb-3">
+                    <label class="small fw-bold text-muted">Converted to INR (₹)</label>
+                    <input type="text" id="inrAmount" class="form-control form-control-lg bg-light fw-bold text-success" readonly>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function convert() {
+        let usd = document.getElementById('usdAmount').value;
+        let rate = 83.50; // Default fallback
+
+        // Loop through rates to find INR explicitly (Safe Method)
+        {% for name, val in rates.items %}
+            {% if "INR" in name %}
+                rate = {{ val }};
+            {% endif %}
+        {% endfor %}
+
+        let result = (usd * rate).toFixed(2);
+        document.getElementById('inrAmount').value = "₹ " + result;
+    }
+    
+    // Page load par ek baar run karo
+    window.onload = convert;
+</script>
+
+<style>
+    .hover-scale:hover { transform: translateY(-3px); transition: 0.2s; box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important; }
+</style>
+{% endblock %}

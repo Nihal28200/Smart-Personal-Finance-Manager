@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4" style="max-width: 750px;">
+    
+    <div class="d-flex align-items-center justify-content-between mb-3 px-2">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 45px; height: 45px;">
+                <i class="fas fa-robot fa-lg"></i>
+            </div>
+            <div class="ms-3">
+                <h5 class="fw-bold mb-0">FinBot AI</h5>
+                <small class="text-success fw-bold">● Active Now</small>
+            </div>
+        </div>
+        <button class="btn btn-sm btn-light rounded-pill px-3 border" onclick="location.reload()">
+            <i class="fas fa-redo-alt me-1"></i> Clear Chat
+        </button>
+    </div>
+
+    <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="height: 65vh; background: var(--bg-card);">
+        <div id="chatBox" class="card-body p-4 overflow-auto" style="scroll-behavior: smooth;">
+            <div class="d-flex mb-4 animate-fade-in">
+                <div class="bg-primary text-white p-3 rounded-4 shadow-sm" style="border-top-left-radius: 0; max-width: 85%;">
+                    Hi <b>{{ user.username|title }}</b>! 💸 <br>
+                    I'm ready. Ask me anything about your <b>Expenses</b>, <b>Budget</b>, or <b>Savings</b>.
+                </div>
+            </div>
+        </div>
+
+        <div id="typingIndicator" class="px-4 pb-2 d-none">
+            <span class="badge bg-light text-muted rounded-pill px-3 py-2 border shadow-sm">
+                FinBot is thinking...
+            </span>
+        </div>
+
+        <div class="card-footer bg-transparent border-top p-3">
+            <div class="d-flex gap-2 mb-3 overflow-auto pb-1" style="scrollbar-width: none;">
+                <button onclick="sendQuickMsg('Summary')" class="btn btn-xs btn-outline-primary rounded-pill text-nowrap">📊 Summary</button>
+                <button onclick="sendQuickMsg('Health')" class="btn btn-xs btn-outline-success rounded-pill text-nowrap">🟢 My Health</button>
+                <button onclick="sendQuickMsg('Overspending')" class="btn btn-xs btn-outline-danger rounded-pill text-nowrap">🚫 Overspending?</button>
+            </div>
+
+            <form onsubmit="handleUserSubmit(event)" class="d-flex align-items-center gap-2">
+                <input type="text" id="userInput" class="form-control border-0 bg-light rounded-pill px-4 py-3" placeholder="Ask me something..." autocomplete="off">
+                <button type="submit" class="btn btn-primary rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data from Django
+    const data = {
+        spent: {{ total_spent|default:0 }},
+        budget: {{ budget|default:0 }},
+        balance: {{ balance|default:0 }},
+        lastExp: "{{ last_expense|default:'No data' }}",
+        currency: "{{ currency|default:'₹' }}"
+    };
+
+    const chatBox = document.getElementById('chatBox');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const userInput = document.getElementById('userInput');
+
+    function addMessage(text, sender) {
+        const div = document.createElement('div');
+        div.className = sender === 'user' ? "d-flex justify-content-end mb-4 animate-slide-right" : "d-flex mb-4 animate-slide-left";
+        
+        const bgColor = sender === 'user' ? 'bg-dark text-white' : 'bg-primary text-white';
+        const borderRadius = sender === 'user' ? 'border-top-right-radius: 0' : 'border-top-left-radius: 0';
+
+        div.innerHTML = `
+            <div class="${bgColor} p-3 rounded-4 shadow-sm" style="${borderRadius}; max-width: 85%;">
+                ${text}
+            </div>
+        `;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function handleUserSubmit(e) {
+        e.preventDefault();
+        const text = userInput.value.trim();
+        if (!text) return;
+        
+        addMessage(text, 'user');
+        userInput.value = '';
+        processReply(text);
+    }
+
+    function sendQuickMsg(text) {
+        addMessage(text, 'user');
+        processReply(text);
+    }
+
+    function processReply(input) {
+        typingIndicator.classList.remove('d-none');
+        
+        // Fast response simulation (500ms instead of 1.5s)
+        setTimeout(() => {
+            typingIndicator.classList.add('d-none');
+            const reply = getSmartResponse(input.toLowerCase());
+            addMessage(reply, 'bot');
+        }, 500);
+    }
+
+    function getSmartResponse(msg) {
+        // Specific Word Recognition Logic
+        if (msg.includes('summary') || msg.includes('status')) {
+            return `📊 <b>Status Update:</b><br>Budget: ${data.currency}${data.budget}<br>Spent: ${data.currency}${data.spent}<br>Left: <b>${data.currency}${data.balance}</b>`;
+        }
+
+        if (msg.includes('spent') || msg.includes('kharcha') || msg.includes('total')) {
+            return `💸 Total spent so far: <b>${data.currency}${data.spent}</b>.`;
+        }
+
+        if (msg.includes('left') || msg.includes('balance') || msg.includes('remaining')) {
+            return `💰 You still have <b>${data.currency}${data.balance}</b> in your pocket for this month.`;
+        }
+
+        if (msg.includes('overspending') || msg.includes('advice') || msg.includes('tip')) {
+            if (data.balance < 0) return "🚨 <b>Urgent:</b> You are overspending by ${data.currency}${Math.abs(data.balance)}! STOP unnecessary expenses immediately.";
+            if (data.balance < (data.budget * 0.2)) return "⚠️ Warning: Only 20% budget left. Skip the next luxury purchase!";
+            return "✅ You are in the safe zone. Keep tracking daily!";
+        }
+
+        if (msg.includes('health')) {
+            const ratio = (data.spent / data.budget);
+            if (ratio > 1) return "🔴 Your financial health is <b>Critical</b>. You've blown the budget.";
+            if (ratio > 0.8) return "🟡 Your health is <b>Weak</b>. Tighten your belt.";
+            return "🟢 Your financial health is <b>Excellent</b>. Great job!";
+        }
+
+        if (msg.includes('last') || msg.includes('recent')) {
+            return `📅 Your most recent expense: <b>${data.lastExp}</b>.`;
+        }
+
+        if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+            return "Hey there! Ready to analyze your money? Ask me about your <b>spent</b> amount or <b>budget</b>.";
+        }
+
+        // Catch-all
+        return "I'm on it! Try keywords like: <b>Summary, Health, Spent,</b> or <b>Balance</b> for exact details.";
+    }
+</script>
+
+<style>
+    .animate-slide-left { animation: slideLeft 0.3s ease-out; }
+    .animate-slide-right { animation: slideRight 0.3s ease-out; }
+    @keyframes slideLeft { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    
+    .btn-xs { padding: 0.25rem 0.75rem; font-size: 0.75rem; }
+    
+    /* Dark Mode Variable Support */
+    #chatBox { background: var(--bg-body); }
+</style>
+{% endblock %}

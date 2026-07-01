@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4" style="max-width: 850px;">
+    
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold">📅 Planned Payments</h2>
+            <p class="text-muted small">Schedule your future bills and never miss a due date.</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 mb-5 rounded-4 overflow-hidden">
+        <h5 class="fw-bold mb-4 text-primary">
+            <i class="fas fa-plus-circle me-2"></i>Schedule a New Bill
+        </h5>
+        <form method="post" class="row g-3 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-5 text-start">
+                <label class="small fw-bold text-muted mb-2">Bill Title</label>
+                {{ form.title }}
+            </div>
+            <div class="col-md-3 text-start">
+                <label class="small fw-bold text-muted mb-2">Amount</label>
+                {{ form.amount }}
+            </div>
+            <div class="col-md-3 text-start">
+                <label class="small fw-bold text-muted mb-2">Due Date</label>
+                {{ form.due_date }}
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100 rounded-3 shadow-sm py-2" title="Schedule">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <h5 class="fw-bold mb-3 text-muted text-uppercase small ls-1 px-2">Upcoming Bills</h5>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="list-group list-group-flush">
+            {% for plan in payments %}
+            <div class="list-group-item border-bottom d-flex justify-content-between align-items-center p-3 hover-bg bg-transparent">
+                <div class="d-flex align-items-center">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
+                        <i class="fas fa-clock fa-lg"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{{ plan.title }}</h6>
+                        <small class="text-muted">Due on: {{ plan.due_date }}</small>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="fw-bold text-danger fs-5">- {{ user.userprofile.currency }} {{ plan.amount }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-5 text-center text-muted">
+                <div class="opacity-25 mb-3">
+                    <i class="fas fa-calendar-check fa-4x"></i>
+                </div>
+                <h6 class="fw-bold">All clear!</h6>
+                <p class="mb-0 small">No upcoming payments scheduled for now.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ✨ PROFESSIONAL STYLING */
+    
+    /* Input Fields Customization */
+    input[type="text"], input[type="number"], input[type="date"] {
+        width: 100%;
+        padding: 10px 14px;
+        background-color: var(--bg-body) !important;
+        border: 1px solid var(--border-color) !important;
+        color: var(--text-dark) !important;
+        border-radius: 10px;
+        transition: all 0.2s;
+    }
+    
+    input:focus {
+        outline: none;
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .ls-1 { letter-spacing: 1px; }
+
+    /* Hover Effects for List */
+    .hover-bg:hover { 
+        background-color: rgba(99, 102, 241, 0.05) !important; 
+        transition: 0.3s;
+    }
+
+    /* List Item Border Fix */
+    .list-group-item {
+        border-color: var(--border-color) !important;
+        color: var(--text-dark);
+    }
+
+    /* Date picker icon color for Dark Mode */
+    ::-webkit-calendar-picker-indicator {
+        filter: invert(var(--dark-mode-invert, 0));
+    }
+</style>
+
+<script>
+    // Logic to fix date picker icon in dark mode
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.style.setProperty('--dark-mode-invert', '1');
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    
+    <div class="card border-0 shadow-sm rounded-4 mb-4 no-print">
+        <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3">
+                <i class="fas fa-calendar-alt text-primary me-2"></i>Filter Time Period
+            </h5>
+            <form method="GET" action="{% url 'expense_report' %}" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">From Date</label>
+                    <input type="date" name="start_date" class="form-control border-0 bg-light rounded-3" value="{{ start_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">To Date</label>
+                    <input type="date" name="end_date" class="form-control border-0 bg-light rounded-3" value="{{ end_date }}">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary flex-grow-1 rounded-3 fw-bold">
+                        <i class="fas fa-filter me-1"></i> Apply Filter
+                    </button>
+                    <a href="{% url 'expense_report' %}" class="btn btn-light border rounded-3 text-muted">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="text-end mb-4 no-print">
+        <button onclick="window.print()" class="btn btn-dark shadow-sm rounded-pill px-4">
+            <i class="fas fa-file-pdf me-2 text-danger"></i> Download / Print PDF
+        </button>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary shadow-sm rounded-pill px-4 ms-2">
+            <i class="fas fa-arrow-left me-2"></i> Back
+        </a>
+    </div>
+
+    <div class="invoice-box shadow-sm rounded-4 bg-white p-4 p-md-5 mx-auto" style="max-width: 900px; border: 1px solid #eee;">
+        
+        <div class="d-flex justify-content-between align-items-start border-bottom pb-4 mb-4">
+            <div>
+                <h2 class="fw-bold" style="color: #6366f1;">FinFlow Report</h2>
+                <p class="mb-0 text-muted">Generated for: <strong>{{ user.username|title }}</strong></p>
+                {% if start_date and end_date %}
+                    <p class="mb-0 text-primary small fw-bold mt-1">Period: {{ start_date }} to {{ end_date }}</p>
+                {% endif %}
+                <p class="text-muted small">Date: {{ today|date:"d M Y, h:i A" }}</p>
+            </div>
+            <div class="text-end">
+                <h1 class="fw-bold text-dark mb-0">{{ currency_symbol }}{{ total_spent }}</h1>
+                <span class="badge bg-success rounded-pill px-3">Total Spent</span>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-6">
+                <div class="p-3 bg-light rounded-4 border border-white">
+                    <h6 class="text-muted fw-bold small text-uppercase">Total Transactions</h6>
+                    <h4 class="fw-bold mb-0 text-dark">{{ total_transactions }}</h4>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-3 bg-light rounded-4 border border-white">
+                    <h6 class="text-muted fw-bold small text-uppercase">Top Category</h6>
+                    <h4 class="fw-bold mb-0 text-dark">
+                        {% if category_data %}{{ category_data.0.category }}{% else %}-{% endif %}
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="fw-bold mb-3 text-secondary">Expense Breakdown</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead style="background-color: #6366f1; color: white;">
+                    <tr>
+                        <th class="ps-3 rounded-start border-0">Date</th>
+                        <th class="border-0">Category</th>
+                        <th class="text-end pe-3 rounded-end border-0">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for expense in expenses %}
+                    <tr>
+                        <td class="ps-3 small text-muted">{{ expense.expense_date }}</td>
+                        <td class="fw-bold text-dark">{{ expense.category }}</td>
+                        <td class="text-end pe-3 fw-bold text-dark">{{ currency_symbol }}{{ expense.amount }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-5">No records found for the selected dates.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="table-light fw-bold">
+                        <td colspan="2" class="ps-3 py-3">GRAND TOTAL</td>
+                        <td class="text-end pe-3 py-3 text-primary h5 fw-bold">{{ currency_symbol }}{{ total_spent }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="mt-5 pt-4 border-top text-center text-muted small">
+            <p class="mb-1">This report was automatically generated by <strong>FinFlow Premium Finance</strong>.</p>
+            <p class="mb-0">FinFlow Inc. | www.finflow.com</p>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* Print Styling */
+    @media print {
+        .no-print, .sidebar, .mobile-toggle { display: none !important; }
+        .main-content { margin-left: 0 !important; padding: 0 !important; }
+        body { background: white !important; }
+        .invoice-box { box-shadow: none !important; border: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        .invoice-box .table thead { background-color: #6366f1 !important; -webkit-print-color-adjust: exact; }
+    }
+    
+    .invoice-box {
+        background: #ffffff;
+        transition: transform 0.2s;
+    }
+</style>
+{% endblock %}
